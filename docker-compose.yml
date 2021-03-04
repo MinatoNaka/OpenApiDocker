@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  api-mock:
+    image: danielgtaylor/apisprout
+    ports:
+      - 8010:8000
+    volumes:
+      - ./openapi/merged.yaml:/merged.yaml
+    entrypoint: /usr/local/bin/apisprout /merged.yaml --watch
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    ports:
+      - 8011:8080
+    volumes:
+      - ./openapi/merged.yaml:/usr/share/nginx/html/merged.yaml
+    environment:
+      API_URL: merged.yaml
+  redoc:
+    image: redocly/redoc
+    ports:
+      - 8012:80
+    volumes:
+      - ./openapi/merged.yaml:/usr/share/nginx/html/merged.yaml
+    environment:
+      SPEC_URL: merged.yaml
+  redoc-cli:
+    build: ./docker/redoc-cli
+    volumes:
+      - ./openapi:/data
+  swagger-merger:
+    build: ./docker/swagger-merger
+    volumes:
+      - ./docker/swagger-merger/watch.js:/watch.js
+      - ./openapi:/data
+    environment:
+      NODE_PATH: /usr/local/lib/node_modules
+    entrypoint: node /watch
